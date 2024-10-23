@@ -73,11 +73,11 @@ class AnalisadorLexicoSintatico{
 
           // Verificando cada parte
           for (String parte in partesWhere) {
-            if (AnalisadorLexicoSintatico._validarCondicao(parte.trim())) {
+            if (_validarCondicao(parte.trim())) {
               listaWhere.add(parte.trim());
             } else {
               throw Exception(
-                  'Erro: Condição inválida na cláusula WHERE: ${parte.trim()}.');
+                  'Erro: Condição inválida na cláusula WHERE: ${parte.trim()}');
             }
           }
         }
@@ -130,4 +130,3 @@ class AnalisadorLexicoSintatico{
     return true;
   }
 }
-
