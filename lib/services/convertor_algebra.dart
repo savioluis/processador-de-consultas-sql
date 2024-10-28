@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:processador_consultas/extensions/string_extension.dart';
 
 import '../models/algebra_relacional.dart';
@@ -8,7 +10,24 @@ typedef Expressao = String;
 typedef Atributo = String;
 
 class ConvertorAlgebra{
-  static List<Projecao> projecoesFrom({required Select select}) {
+
+  static ArvoreAlgebra _arvoreAlgebra({required Select select}) {
+    final projecoes = _projecoesFrom(select: select);
+
+    final naoTemJoin = select.joins.isEmpty;
+    if (naoTemJoin) return ArvoreAlgebraSemJoin(projecoes[0]);
+
+    final arvoreNome = select.campos.fold("", (acc, campo) {
+      return "$acc${campo.tabela}.${campo.atributo},";
+    });
+
+    final expressoesJoin = select.joins.map((join) => join.condicao).toList();
+
+    return ArvoreAlgebraComJoin(
+        nomeRaiz: arvoreNome, produtoCartesiano: produtoCartesianoRaiz);
+  }
+
+  static List<Projecao> _projecoesFrom({required Select select}) {
     final List<Tabela> tabelasEmJoins = select.joins.map((join) => join.tabela)
         .toList();
     final List<Tabela> tabelas = [select.principal, ...tabelasEmJoins];

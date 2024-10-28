@@ -1,8 +1,15 @@
 typedef Tabela = String;
 typedef Expressao = String;
 typedef AtributoTabela = String;
-//π
-class Projecao{
+
+sealed class AlgebraComponente{}
+
+
+class ProdutoCartesiano implements{
+
+}
+
+class Projecao implements AlgebraComponente{//π
    final Tabela tabela;
    final List<AtributoTabela> tabelaAtributos;
    final List<Expressao> selecoes; //σ

@@ -44,3 +44,16 @@ extension Tabela on String{
     return atributos;
   }
 }
+
+extension JoinExpressao  on String{
+  (String tb1, String tb2) obterTabelasEmJoin() {
+    RegExp regex = RegExp(r'([a-zA-Z0-9_]+)\.[a-zA-Z0-9_]+');
+    var matches = regex.allMatches(this).map((match) => match.group(1)!).toSet();
+
+    if (matches.length != 2) {
+      throw Exception('Erro: A expressão JOIN deve conter exatamente duas tabelas.');
+    }
+    final matchesToList = matches.toList();
+    return (matchesToList[0],matchesToList[1]);
+  }
+}
