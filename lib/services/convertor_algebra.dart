@@ -10,6 +10,7 @@ typedef Atributo = String;
 class ConvertorAlgebra{
 
   static AlgebraArvore _arvoreAlgebra({required Select select}) {
+    //arvore sem join
     final projecoes = _projecoesFrom(select: select);
 
     final naoTemJoin = select.joins.isEmpty;
@@ -19,33 +20,49 @@ class ConvertorAlgebra{
       return "$acc${campo.tabela}.${campo.atributo},";
     });
     final expressoesJoin = select.joins.map((join) => join.condicao).toList();
-    //////
+    
+    //arvore com join
     List<ProdutoCartesiano> produtosCartesianos = [];
-    expressoesJoin.forEach((expressaoJoin){
-      final ProdutoCartesiano produtoCartesiano = ProdutoCartesiano(
-          noEsquerdo: NoVazio(),
-          noDireito: NoVazio()
-      );
 
-      projecoes.forEach((projecao){
-          final tabela = projecao.tabela;
-          final (tb1,tb2) = expressaoJoin.obterTabelasEmJoin();
+    for (int i = 0; i < expressoesJoin.length; i++) {
+      final expressaoJoinAtual = expressoesJoin[i];
+      final produtoCartesiano = ProdutoCartesiano.vazio();
 
-          if(tabela == tb1 && produtoCartesiano.temEspaco()){
-            produtoCartesiano.addNoEsquerdo(projecao);
-          }else if(tabela == tb2 && produtoCartesiano.temEspaco()){
-            produtoCartesiano.addNoDireito(projecao);
-          }
-          if(produtoCartesiano.noEsquerdo is! NoVazio && produtoCartesiano.noDireito is! NoVazio){
-            produtosCartesianos.add(produtoCartesiano);
-          }
-      });
+      for (int j = 0; j < projecoes.length; j++) {
+        final projecaoAtual = projecoes[j];
+        final tabela = projecaoAtual.tabela;
+        final (tb1,tb2) = expressaoJoinAtual.obterTabelasEmJoin();
 
-    });
+        if (tabela == tb1 && produtoCartesiano.temEspaco()) {
+          produtoCartesiano.addNoEsquerdo(projecaoAtual);
+        } else if (tabela == tb2 && produtoCartesiano.temEspaco()) {
+          produtoCartesiano.addNoDireito(projecaoAtual);
+        }
 
-    return ArvoreAlgebraComJoin(
-        nomeRaiz: arvoreNome,
-        produtoCartesiano: produtoCartesianoRaiz
+        if (!produtoCartesiano.temEspaco()) {
+          produtosCartesianos.add(produtoCartesiano);
+        }
+
+      }
+      //se o produto cartesiano nao foi adicionado na lista,
+      // significa que ele possui algum nó como NoVazio
+      // e será passado para esse NoVazio o produto cartesiano anterior
+      if (!produtosCartesianos.contains(produtoCartesiano)) {
+        if (produtoCartesiano.noEsquerdo is NoVazio) {
+          produtoCartesiano.addNoEsquerdo(produtosCartesianos[i-1]);
+        } else if (produtoCartesiano.noDireito is NoVazio) {
+          produtoCartesiano.addNoDireito(produtosCartesianos[i-1]);
+        }
+      }
+    }
+
+    //dessa forma tenho os produtos cartesianos em ordem,
+    //com suas projecoes e eu conheco quem é a raiz
+    //assim consigo formar a arvore
+
+    return AlgebraArvoreComJoin(
+        raiz: arvoreNome,
+        produtoCartesiano: produtosCartesianos,
     );
   }
 
